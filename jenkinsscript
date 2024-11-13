@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Git Clone') {
+            steps {
+                git branch: 'master', url: 'https://github.com/yash84596/keeplearning1.git'
+            }
+        }
+
+        stage('Mvn package') {
+            steps {
+                sh 'mvn clean'
+                sh 'mvn package'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t image${BUILD_NUMBER} .'
+            }
+        }
+
+        stage('Docker Tag and Push to Dockerhub') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: '3332c84b-9f19-46c7-a299-73b4f1c224c1') {
+                        sh "docker tag image${BUILD_NUMBER} yashwant84596/project:${BUILD_NUMBER}"
+                        sh "docker push yashwant84596/project:${BUILD_NUMBER}"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to K8s') {
+            steps {
+                script {
+                    sh "sed -i 's,docker.io/httpd,yashwant84596/project:${BUILD_NUMBER},' deployment.yaml"
+                    sh "kubectl --kubeconfig=/tmp/test apply -f deployment.yaml"
+                    sh "kubectl --kubeconfig=/tmp/test expose deployment test1 --type=NodePort --port=8080"
+                }
+            }
+        }
+    }
+}
