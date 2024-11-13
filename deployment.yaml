@@ -1,21 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-k-deployment
+  creationTimestamp: null
   labels:
-    owner: examplecorp
+    app: test1
+  name: test1
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      app: nginx
-  replicas: 1
+      app: test1
+  strategy: {}
   template:
     metadata:
+      creationTimestamp: null
       labels:
-        app: nginx
+        app: test1
     spec:
       containers:
-      - name: nginx
-        image: nginx
-        ports:
-        - containerPort: 80
+      - image: docker.io/httpd
+        name: httpd
+        resources: {}
+status: {}
